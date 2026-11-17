@@ -1,0 +1,708 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banker's Algorithm - Smart Device</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background: #0b1220;
+    color: white;
+    padding: 18px;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+}
+
+header {
+    background: linear-gradient(120deg,#4338ca,#0891b2);
+    padding: 30px 15px;
+    text-align: center;
+    border-radius: 15px;
+    margin-bottom: 25px;
+}
+
+header h1 {
+    font-size: 27px;
+}
+
+header p {
+    margin-top: 10px;
+    color: #e0f2fe;
+}
+
+.section {
+    background: #172338;
+    border: 1px solid #334155;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+}
+
+h2 {
+    color: #38bdf8;
+    margin-bottom: 17px;
+    font-size: 20px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(140px,1fr));
+    gap: 13px;
+    margin-bottom: 20px;
+}
+
+.card {
+    background: #172338;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #334155;
+}
+
+.card h3 {
+    color: #38bdf8;
+    font-size: 15px;
+}
+
+.card p {
+    font-size: 25px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+input {
+    background: #26364e;
+    color: white;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 10px;
+    width: 75px;
+    margin: 3px;
+    text-align: center;
+    font-size: 15px;
+}
+
+.name {
+    width: 100px;
+}
+
+button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 7px;
+    margin: 6px 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.primary {
+    background: #0891b2;
+    color: white;
+}
+
+.success {
+    background: #16a34a;
+    color: white;
+}
+
+.danger {
+    background: #dc2626;
+    color: white;
+}
+
+.secondary {
+    background: #475569;
+    color: white;
+}
+
+button:hover {
+    opacity: .85;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 450px;
+}
+
+th, td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #475569;
+}
+
+th {
+    background: #26364e;
+    color: #38bdf8;
+}
+
+td {
+    background: #1e293b;
+}
+
+input:focus {
+    outline: 2px solid #38bdf8;
+}
+
+.status {
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    background: #26364e;
+    line-height: 1.7;
+}
+
+.safe {
+    border-left: 5px solid #22c55e;
+}
+
+.unsafe {
+    border-left: 5px solid #ef4444;
+}
+
+.sequence {
+    color: #4ade80;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 12px;
+}
+
+.resource-label {
+    color: #94a3b8;
+    margin: 12px 0;
+}
+
+footer {
+    text-align: center;
+    color: #94a3b8;
+    padding: 20px;
+}
+
+@media(max-width:500px) {
+    body { padding: 9px; }
+    header h1 { font-size: 22px; }
+    .section { padding: 13px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>💻 Smart Device Resource Manager</h1>
+    <p>Deadlock Avoidance Using Banker's Algorithm</p>
+    <p>CPU | Memory | I/O Resource Management</p>
+</header>
+
+<div class="stats">
+
+    <div class="card">
+        <h3>Processes</h3>
+        <p id="processCount">5</p>
+    </div>
+
+    <div class="card">
+        <h3>Resources</h3>
+        <p>3</p>
+    </div>
+
+    <div class="card">
+        <h3>System Status</h3>
+        <p id="systemStatus">Ready</p>
+    </div>
+
+    <div class="card">
+        <h3>Safe Processes</h3>
+        <p id="safeCount">-</p>
+    </div>
+
+</div>
+
+<div class="section">
+
+<h2>⚙️ Available Resources</h2>
+
+<p class="resource-label">
+    Enter available CPU, Memory and I/O resources
+</p>
+
+<div id="availableInputs"></div>
+
+</div>
+
+<div class="section">
+
+<h2>📊 Maximum Resource Requirements</h2>
+
+<div id="maxTable"></div>
+
+</div>
+
+<div class="section">
+
+<h2>🔐 Allocated Resources</h2>
+
+<div id="allocationTable"></div>
+
+</div>
+
+<div class="section">
+
+<h2>📉 Need Matrix</h2>
+
+<p class="resource-label">
+    Need = Maximum - Allocation
+</p>
+
+<div id="needTable"></div>
+
+</div>
+
+<div class="section">
+
+<h2>🚀 New Resource Request</h2>
+
+<label>Select Process:</label>
+
+<select id="processSelect"
+style="padding:10px;background:#26364e;color:white;border-radius:6px;">
+<option value="0">Process P0</option>
+<option value="1">Process P1</option>
+<option value="2">Process P2</option>
+<option value="3">Process P3</option>
+<option value="4">Process P4</option>
+</select>
+
+<p class="resource-label">
+Enter requested CPU, Memory and I/O resources:
+</p>
+
+<div id="requestInputs"></div>
+
+<button class="primary" onclick="checkRequest()">
+Check Resource Request
+</button>
+
+<button class="secondary" onclick="resetSystem()">
+Reset System
+</button>
+
+<div id="requestResult" class="status">
+Waiting for resource request...
+</div>
+
+</div>
+
+<div class="section">
+
+<h2>🛡️ Safety Algorithm Result</h2>
+
+<button class="success" onclick="checkSafety()">
+Run Safety Algorithm
+</button>
+
+<div id="safetyResult" class="status">
+Click Run Safety Algorithm to check system safety.
+</div>
+
+<div id="sequence" class="sequence"></div>
+
+</div>
+
+<div class="section">
+
+<h2>📋 System State</h2>
+
+<div id="systemTable"></div>
+
+</div>
+
+<footer>
+Smart Device Resource Request System<br>
+Deadlock Avoidance Using Banker's Algorithm
+</footer>
+
+</div>
+
+<script>
+
+// Initial system data
+
+const initialAvailable = [3,3,2];
+
+const initialMax = [
+[7,5,3],
+[3,2,2],
+[9,0,2],
+[2,2,2],
+[4,3,3]
+];
+
+const initialAllocation = [
+[0,1,0],
+[2,0,0],
+[3,0,2],
+[2,1,1],
+[0,0,2]
+];
+
+let available = [...initialAvailable];
+let max = initialMax.map(r => [...r]);
+let allocation = initialAllocation.map(r => [...r]);
+
+let lastSafe = null;
+let resourceNames = ["CPU","Memory","I/O"];
+
+// Create input fields
+
+function createInputs() {
+
+    document.getElementById("availableInputs").innerHTML =
+        resourceNames.map((r,i) =>
+        `${r}: <input type="number" min="0" id="av${i}" value="${available[i]}">`
+        ).join("");
+
+    document.getElementById("requestInputs").innerHTML =
+        resourceNames.map((r,i) =>
+        `${r}: <input type="number" min="0" id="req${i}" value="0">`
+        ).join("");
+}
+
+// Create matrix table
+
+function matrixHTML(data) {
+
+    let html = "<table><tr><th>Process</th>";
+
+    resourceNames.forEach(r => {
+        html += `<th>${r}</th>`;
+    });
+
+    html += "</tr>";
+
+    data.forEach((row,i) => {
+
+        html += `<tr><td>P${i}</td>`;
+
+        row.forEach(value => {
+            html += `<td>${value}</td>`;
+        });
+
+        html += "</tr>";
+    });
+
+    return html + "</table>";
+}
+
+// Calculate Need Matrix
+
+function getNeed() {
+
+    return max.map((row,i) =>
+        row.map((value,j) =>
+            value - allocation[i][j]
+        )
+    );
+}
+
+// Update dashboard
+
+function updateUI() {
+
+    available = resourceNames.map((r,i) =>
+        Number(document.getElementById("av"+i)?.value ?? available[i])
+    );
+
+    document.getElementById("processCount").innerText =
+        max.length;
+
+    document.getElementById("maxTable").innerHTML =
+        matrixHTML(max);
+
+    document.getElementById("allocationTable").innerHTML =
+        matrixHTML(allocation);
+
+    document.getElementById("needTable").innerHTML =
+        matrixHTML(getNeed());
+
+    let state = allocation.map((row,i) => ({
+        max: max[i],
+        allocation: row,
+        need: getNeed()[i]
+    }));
+
+    document.getElementById("systemTable").innerHTML =
+        `<p class="resource-label">Available: ${available.join(" | ")}</p>` +
+        matrixHTML(state.map(x => x.need));
+
+    document.getElementById("safeCount").innerText = "-";
+    lastSafe = null;
+}
+
+// Safety Algorithm
+
+function safetyAlgorithm(av, alloc, maximum) {
+
+    let n = alloc.length;
+    let need = maximum.map((row,i) =>
+        row.map((v,j) => v - alloc[i][j])
+    );
+
+    let work = [...av];
+    let finish = Array(n).fill(false);
+    let sequence = [];
+
+    while(sequence.length < n) {
+
+        let found = false;
+
+        for(let i=0;i<n;i++) {
+
+            if(!finish[i] &&
+               need[i].every((v,j) => v <= work[j])) {
+
+                for(let j=0;j<work.length;j++) {
+                    work[j] += alloc[i][j];
+                }
+
+                finish[i] = true;
+                sequence.push("P"+i);
+                found = true;
+            }
+        }
+
+        if(!found) break;
+    }
+
+    return {
+        safe: sequence.length === n,
+        sequence: sequence
+    };
+}
+
+// Run safety check
+
+function checkSafety() {
+
+    let result = safetyAlgorithm(
+        available, allocation, max
+    );
+
+    let output = document.getElementById("safetyResult");
+
+    if(result.safe) {
+
+        output.className = "status safe";
+
+        output.innerHTML =
+            "✅ SAFE STATE<br>" +
+            "All processes can complete successfully.";
+
+        document.getElementById("sequence").innerText =
+            "Safe Sequence: " + result.sequence.join(" → ");
+
+        document.getElementById("systemStatus").innerText =
+            "SAFE";
+
+        document.getElementById("safeCount").innerText =
+            result.sequence.length;
+
+    } else {
+
+        output.className = "status unsafe";
+
+        output.innerHTML =
+            "❌ UNSAFE STATE<br>" +
+            "A safe sequence could not be found.";
+
+        document.getElementById("sequence").innerText = "";
+
+        document.getElementById("systemStatus").innerText =
+            "UNSAFE";
+
+        document.getElementById("safeCount").innerText = "0";
+    }
+
+    lastSafe = result.safe;
+
+    return result.safe;
+}
+
+// New resource request
+
+function checkRequest() {
+
+    let p = Number(document.getElementById("processSelect").value);
+
+    let request = resourceNames.map((r,i) =>
+        Number(document.getElementById("req"+i).value)
+    );
+
+    let need = getNeed();
+
+    let output = document.getElementById("requestResult");
+
+    if(request.some(v => !Number.isInteger(v) || v < 0)) {
+        output.className = "status unsafe";
+        output.innerText = "Invalid request. Enter non-negative whole numbers.";
+        return;
+    }
+
+    // Request must be <= Need
+
+    if(!request.every((v,j) => v <= need[p][j])) {
+
+        output.className = "status unsafe";
+        output.innerHTML =
+            "❌ REQUEST REJECTED<br>" +
+            "Request exceeds the process maximum remaining need.";
+
+        return;
+    }
+
+    // Request must be <= Available
+
+    if(!request.every((v,j) => v <= available[j])) {
+
+        output.className = "status unsafe";
+        output.innerHTML =
+            "⏳ REQUEST WAITING<br>" +
+            "Not enough available resources.";
+
+        return;
+    }
+
+    // Temporary allocation
+
+    let tempAvailable = available.map((v,j) =>
+        v - request[j]
+    );
+
+    let tempAllocation = allocation.map(r => [...r]);
+
+    request.forEach((v,j) => {
+        tempAllocation[p][j] += v;
+    });
+
+    // Safety check
+
+    let result = safetyAlgorithm(
+        tempAvailable,
+        tempAllocation,
+        max
+    );
+
+    if(result.safe) {
+
+        available = tempAvailable;
+        allocation = tempAllocation;
+
+        resourceNames.forEach((r,i) => {
+            document.getElementById("av"+i).value =
+                available[i];
+        });
+
+        output.className = "status safe";
+
+        output.innerHTML =
+            "✅ REQUEST GRANTED!<br>" +
+            "The system remains in a safe state.<br>" +
+            "Resources allocated to Process P" + p + ".";
+
+        logResult(
+            "Request granted to P"+p+
+            ". Safe sequence: "+result.sequence.join(" → ")
+        );
+
+        updateTablesOnly();
+
+        checkSafety();
+
+    } else {
+
+        output.className = "status unsafe";
+
+        output.innerHTML =
+            "❌ REQUEST DENIED!<br>" +
+            "Granting this request would make the system unsafe.<br>" +
+            "Original resources are maintained.";
+
+        document.getElementById("systemStatus").innerText =
+            "UNSAFE REQUEST";
+    }
+}
+
+// Update tables without changing available
+
+function updateTablesOnly() {
+
+    document.getElementById("maxTable").innerHTML =
+        matrixHTML(max);
+
+    document.getElementById("allocationTable").innerHTML =
+        matrixHTML(allocation);
+
+    document.getElementById("needTable").innerHTML =
+        matrixHTML(getNeed());
+
+    document.getElementById("systemTable").innerHTML =
+        `<p class="resource-label">Available: ${available.join(" | ")}</p>` +
+        matrixHTML(getNeed());
+}
+
+// Activity message
+
+function logResult(message) {
+    console.log(message);
+}
+
+// Reset system
+
+function resetSystem() {
+
+    available = [...initialAvailable];
+
+    max = initialMax.map(r => [...r]);
+
+    allocation = initialAllocation.map(r => [...r]);
+
+    document.getElementById("requestResult").innerText =
+        "System reset successfully.";
+
+    document.getElementById("safetyResult").innerText =
+        "Click Run Safety Algorithm to check system safety.";
+
+    document.getElementById("sequence").innerText = "";
+
+    createInputs();
+
+    updateUI();
+
+    document.getElementById("systemStatus").innerText =
+        "Ready";
+}
+
+// Initial loading
+
+createInputs();
+updateUI();
+
+</script>
+
+</body>
+</html>
